@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 5.0：データコラボレーション - SnowPro Guide 練習問題</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --navy: #0b2e4e;
+  --navy-light: #163d62;
+  --accent: #29b5f6;
+  --accent-dark: #00A1D9;
+  --accent-bg: #f0f9ff;
+  --accent-border: #b9dcfe;
+  --correct: #10b981;
+  --correct-bg: #ecfdf5;
+  --correct-border: #6ee7b7;
+  --incorrect: #ef4444;
+  --incorrect-bg: #fef2f2;
+  --incorrect-border: #fca5a5;
+  --text: #1e293b;
+  --text-mid: #334155;
+  --text-light: #64748b;
+  --bg: #ffffff;
+  --bg-subtle: #f8fafc;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --radius: 8px;
+}
+
+body {
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: transparent;
+  color: var(--text);
+  line-height: 1.85;
+  -webkit-font-smoothing: antialiased;
+}
+
+.quiz-container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--navy);
+  border-radius: var(--radius) var(--radius) 0 0;
+  color: white;
+}
+
+.quiz-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.85;
+}
+
+.quiz-header h2 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.quiz-progress {
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.15);
+  padding: 3px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Body ── */
+.quiz-body {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Progress dots ── */
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 0 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.25s ease;
+}
+
+.dot.active {
+  background: var(--accent);
+  transform: scale(1.3);
+  box-shadow: 0 0 0 3px rgba(41,181,246,0.2);
+}
+
+.dot.done { background: var(--correct); }
+.dot.wrong { background: var(--incorrect); }
+
+/* ── Question card ── */
+.question-card {
+  padding: 24px 24px 20px;
+  display: none;
+}
+
+.question-card.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.question-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.question-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--navy);
+  padding: 3px 12px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.question-type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 2px 10px;
+  border-radius: 4px;
+}
+
+.question-text {
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+/* ── Options ── */
+.options-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--bg);
+  user-select: none;
+}
+
+.option-item:hover:not(.disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.option-item.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.option-item.correct {
+  border-color: var(--correct-border) !important;
+  background: var(--correct-bg) !important;
+}
+
+.option-item.incorrect {
+  border-color: var(--incorrect-border) !important;
+  background: var(--incorrect-bg) !important;
+}
+
+.option-item.disabled {
+  cursor: default;
+}
+
+.option-item.disabled:not(.correct):not(.incorrect):not(.was-correct) {
+  opacity: 0.45;
+}
+
+.option-item.was-correct {
+  border-color: var(--correct-border) !important;
+  background: var(--correct-bg) !important;
+  opacity: 0.65;
+}
+
+.option-marker {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-top: 1px;
+  transition: all 0.15s ease;
+}
+
+.option-item.multi .option-marker {
+  border-radius: 5px;
+}
+
+.option-item.selected .option-marker {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.option-item.correct .option-marker,
+.option-item.was-correct .option-marker {
+  border-color: var(--correct);
+  background: var(--correct);
+  color: white;
+}
+
+.option-item.incorrect .option-marker {
+  border-color: var(--incorrect);
+  background: var(--incorrect);
+  color: white;
+}
+
+.option-label {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-mid);
+  padding-top: 1px;
+}
+
+/* ── Submit button ── */
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 28px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(11,46,78,0.15);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--navy-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11,46,78,0.2);
+}
+
+.submit-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ── Result icon ── */
+.result-icon {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.result-icon.visible { display: inline-flex; }
+.result-icon.correct { color: var(--correct); }
+.result-icon.incorrect { color: var(--incorrect); }
+
+/* ── Explanation ── */
+.explanation {
+  display: none;
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent-dark);
+}
+
+.explanation.visible {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.explanation-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.explanation-text {
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text-mid);
+}
+
+.explanation-text a {
+  color: var(--accent-dark);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.explanation-text a:hover {
+  text-decoration: underline;
+}
+
+/* ── Navigation ── */
+.quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+  margin-top: 20px;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.nav-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* ── Score card ── */
+.score-card {
+  display: none;
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.score-card.active {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+.score-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 900;
+  color: white;
+  background: var(--navy);
+  box-shadow: 0 4px 20px rgba(11,46,78,0.25);
+  margin-bottom: 20px;
+}
+
+.score-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.score-sub {
+  font-size: 13.5px;
+  color: var(--text-light);
+  margin-bottom: 28px;
+  line-height: 1.75;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 32px;
+  background: var(--accent-dark);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,161,217,0.3);
+}
+
+.cta-btn:hover {
+  background: #0088b8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,161,217,0.35);
+  color: white;
+  text-decoration: none;
+}
+
+.cta-arrow {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.cta-btn:hover .cta-arrow {
+  transform: translateX(3px);
+}
+
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-light);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 14px;
+  transition: all 0.15s ease;
+}
+
+.retry-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .quiz-header { padding: 12px 16px; }
+  .quiz-header h2 { font-size: 13px; }
+  .question-card { padding: 20px 16px 16px; }
+  .question-text { font-size: 14.5px; }
+  .option-item { padding: 11px 12px; gap: 10px; }
+  .option-label { font-size: 13.5px; }
+  .explanation { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="quiz-container" id="quizApp">
+  <div class="quiz-header">
+    <div class="quiz-header-left">
+      <svg class="quiz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+      <h2>SnowPro Core 練習問題</h2>
+    </div>
+    <span class="quiz-progress" id="progressText">1 / 2</span>
+  </div>
+
+  <div class="quiz-body">
+    <div class="progress-dots" id="progressDots"></div>
+    <div id="questionsContainer"></div>
+
+    <div class="score-card" id="scoreCard">
+      <div class="score-circle" id="scoreCircle"></div>
+      <div class="score-text" id="scoreText"></div>
+      <div class="score-sub" id="scoreSub"></div>
+      <a class="cta-btn" href="https://www.udemy.com/course/200snowpro-core/?couponCode=SNOWPROGUIDE202603" target="_blank" rel="noopener">
+        模擬試験で本番に備える <span class="cta-arrow">→</span>
+      </a>
+      <br>
+      <button class="retry-btn" onclick="resetQuiz()">↻ もう一度挑戦</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [{"question": "SnowflakeのSecure Data Sharing（セキュアデータ共有）の主な利点は何ですか？", "type": "multiple-choice", "options": ["データを物理的にコピーして転送する必要がある", "コンシューマーはプロバイダーのストレージコストを負担する", "データはコピーされず、プロバイダーのデータへの直接アクセスが可能になる", "異なるクラウドリージョン間でも設定なしで瞬時に共有できる"], "explanations": ["", "", "", ""], "correct": [2], "overall": "Secure Data Sharingは、データの物理的なコピーを行わず、メタデータ層でアクセス権を付与するため、ストレージコストを重複させずに即座にデータを共有できます。 参考: https://docs.snowflake.com/ja/user-guide/data-sharing-intro"}, {"question": "Snowflake Data Clean Roomの説明として正しいものはどれですか？", "type": "multiple-choice", "options": ["データをクリーニング（欠損値補完、重複削除等）する機能である", "複数組織間で生データを共有せずに、プライバシーを保護しながらデータ分析を共同で行える環境である", "Snowflake内のデータを物理的に隔離するセキュリティゾーンである", "データウェアハウスの負荷テストを行うサンドボックス環境である"], "explanations": ["", "", "", ""], "correct": [1], "overall": "Snowflake Data Clean Roomは、コラボレーターが生データに直接アクセスすることなく、集計された結果やインサイトを安全に共有・分析できるプライバシー保護環境です。差分プライバシーなどの技術を使用し、プロバイダーとコンシューマーの概念で運用されます。 参考: https://docs.snowflake.com/ja/user-guide/cleanrooms/introduction"}];
+let currentIndex = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let answered = new Array(QUESTIONS.length).fill(false);
+let score = 0;
+
+function init() {
+  const container = document.getElementById('questionsContainer');
+  const dots = document.getElementById('progressDots');
+  
+  QUESTIONS.forEach((q, qi) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (qi === 0 ? ' active' : '');
+    dot.dataset.index = qi;
+    dots.appendChild(dot);
+    
+    const card = document.createElement('div');
+    card.className = 'question-card' + (qi === 0 ? ' active' : '');
+    card.dataset.index = qi;
+    
+    const isMulti = q.type === 'multi-select';
+    const typeLabel = isMulti ? '複数選択' : '単一選択';
+    const selectHint = isMulti ? `（${q.correct.length}つ選択）` : '';
+    
+    card.innerHTML = `
+      <div class="question-meta">
+        <span class="question-number">問 ${qi + 1}</span>
+        <span class="question-type-badge">${typeLabel}</span>
+      </div>
+      <p class="question-text">${q.question}${selectHint}</p>
+      <ul class="options-list" data-qi="${qi}">
+        ${q.options.map((opt, oi) => `
+          <li class="option-item${isMulti ? ' multi' : ''}" data-qi="${qi}" data-oi="${oi}" onclick="selectOption(${qi}, ${oi})">
+            <span class="option-marker">${String.fromCharCode(65 + oi)}</span>
+            <span class="option-label">${opt}</span>
+          </li>
+        `).join('')}
+      </ul>
+      <div class="result-icon" id="result-${qi}"></div>
+      <button class="submit-btn" id="submit-${qi}" onclick="submitAnswer(${qi})" disabled>回答する</button>
+      <div class="explanation" id="explanation-${qi}">
+        <div class="explanation-title">解説</div>
+        <div class="explanation-text">${formatExplanation(q.overall)}</div>
+      </div>
+      <div class="quiz-nav">
+        <button class="nav-btn" onclick="goTo(${qi - 1})" ${qi === 0 ? 'disabled' : ''}>← 前へ</button>
+        ${qi < QUESTIONS.length - 1 
+          ? `<button class="nav-btn" id="next-${qi}" onclick="goTo(${qi + 1})">次へ →</button>`
+          : `<button class="nav-btn" id="next-${qi}" onclick="showScore()" style="display:none;">結果を見る →</button>`
+        }
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function formatExplanation(text) {
+  return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+function selectOption(qi, oi) {
+  if (answered[qi]) return;
+  
+  const q = QUESTIONS[qi];
+  const isMulti = q.type === 'multi-select';
+  const items = document.querySelectorAll(`.option-item[data-qi="${qi}"]`);
+  
+  if (isMulti) {
+    items[oi].classList.toggle('selected');
+    const selected = Array.from(items).filter(el => el.classList.contains('selected')).map(el => parseInt(el.dataset.oi));
+    answers[qi] = selected.length > 0 ? selected : null;
+  } else {
+    items.forEach(el => el.classList.remove('selected'));
+    items[oi].classList.add('selected');
+    answers[qi] = [oi];
+  }
+  
+  document.getElementById(`submit-${qi}`).disabled = !answers[qi];
+}
+
+function submitAnswer(qi) {
+  if (answered[qi] || !answers[qi]) return;
+  answered[qi] = true;
+  
+  const q = QUESTIONS[qi];
+  const selected = answers[qi];
+  const correct = q.correct;
+  const isCorrect = selected.length === correct.length && selected.every(s => correct.includes(s));
+  
+  if (isCorrect) score++;
+  
+  const items = document.querySelectorAll(`.option-item[data-qi="${qi}"]`);
+  items.forEach((el, oi) => {
+    el.classList.add('disabled');
+    if (correct.includes(oi) && selected.includes(oi)) {
+      el.classList.add('correct');
+    } else if (selected.includes(oi) && !correct.includes(oi)) {
+      el.classList.add('incorrect');
+    } else if (correct.includes(oi)) {
+      el.classList.add('was-correct');
+    }
+  });
+  
+  const resultEl = document.getElementById(`result-${qi}`);
+  resultEl.classList.add('visible', isCorrect ? 'correct' : 'incorrect');
+  resultEl.innerHTML = isCorrect ? '✓ 正解！' : '✗ 不正解';
+  
+  document.getElementById(`submit-${qi}`).style.display = 'none';
+  document.getElementById(`explanation-${qi}`).classList.add('visible');
+  
+  const dot = document.querySelector(`.dot[data-index="${qi}"]`);
+  dot.classList.remove('active');
+  dot.classList.add(isCorrect ? 'done' : 'wrong');
+  
+  const nextBtn = document.getElementById(`next-${qi}`);
+  if (nextBtn) nextBtn.style.display = '';
+}
+
+function goTo(index) {
+  if (index < 0 || index >= QUESTIONS.length) return;
+  
+  document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.question-card[data-index="${index}"]`).classList.add('active');
+  
+  document.querySelectorAll('.dot').forEach(el => el.classList.remove('active'));
+  const targetDot = document.querySelector(`.dot[data-index="${index}"]`);
+  if (!targetDot.classList.contains('done') && !targetDot.classList.contains('wrong')) {
+    targetDot.classList.add('active');
+  }
+  
+  currentIndex = index;
+  document.getElementById('progressText').textContent = `${index + 1} / ${QUESTIONS.length}`;
+}
+
+function showScore() {
+  document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+  document.getElementById('scoreCard').classList.add('active');
+  document.getElementById('progressText').textContent = '結果';
+  
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  document.getElementById('scoreCircle').textContent = `${score}/${QUESTIONS.length}`;
+  document.getElementById('scoreText').textContent = 
+    pct === 100 ? 'パーフェクト！' : pct >= 50 ? 'よくできました！' : 'もう少し復習しましょう';
+  document.getElementById('scoreSub').textContent = 
+    `正答率 ${pct}% — Udemyの模擬試験（200問+）でさらに実力を磨きましょう`;
+}
+
+function resetQuiz() {
+  score = 0;
+  currentIndex = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  answered = new Array(QUESTIONS.length).fill(false);
+  
+  document.getElementById('scoreCard').classList.remove('active');
+  document.getElementById('questionsContainer').innerHTML = '';
+  document.getElementById('progressDots').innerHTML = '';
+  document.getElementById('progressText').textContent = '1 / ' + QUESTIONS.length;
+  
+  init();
+}
+
+function sendHeight() {
+  const h = document.documentElement.scrollHeight;
+  window.parent.postMessage({ type: 'quiz-resize', height: h }, '*');
+}
+const ro = new ResizeObserver(() => sendHeight());
+ro.observe(document.body);
+
+init();
+</script>
+
+</body>
+</html>
