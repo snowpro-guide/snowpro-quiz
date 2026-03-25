@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sp-cta {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f5fc 100%);
+  border: 2px solid #b3e4f7;
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+
+.sp-cta-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #00A1D9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.sp-cta h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.sp-cta p {
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+.sp-cta-btn {
+  display: inline-block;
+  background: #00A1D9;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(0,161,217,0.3);
+  border: none;
+}
+
+.sp-cta-btn:hover {
+  background: #0088b8;
+  transform: translateY(-1px);
+  color: #fff;
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .sp-cta { padding: 20px; }
+  .sp-cta h3 { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="sp-cta" id="ctaBox">
+  <div class="sp-cta-label" id="ctaLabel"></div>
+  <h3 id="ctaTitle"></h3>
+  <p id="ctaDesc"></p>
+  <a class="sp-cta-btn" id="ctaBtn" target="_blank" rel="noopener"></a>
+</div>
+
+<script src="config.js"></script>
+<script>
+// URLパラメータを取得
+const params = new URLSearchParams(window.location.search);
+
+// パラメータ一覧:
+//   label  — 左上のラベル（例: "日本語の模擬試験"）
+//   title  — h3のタイトル（省略時: config.jsのmainTitleを使用）
+//   desc   — 説明文（省略時: config.jsのstatusLineを使用）
+//   btn    — ボタンテキスト（省略時: config.jsのbtnTextDefaultを使用）
+//   type   — "default" | "detail" | "start"（btnより優先度低い）
+
+const label = params.get('label') || '日本語の模擬試験';
+const title = params.get('title') || SP_CONFIG.mainTitle;
+const desc = params.get('desc') || SP_CONFIG.statusLine;
+const type = params.get('type') || 'default';
+
+let btnText;
+if (params.get('btn')) {
+  btnText = params.get('btn');
+} else {
+  btnText = type === 'detail' ? SP_CONFIG.btnTextDetail
+          : type === 'start'  ? SP_CONFIG.btnTextStart
+          : SP_CONFIG.btnTextDefault;
+}
+
+document.getElementById('ctaLabel').textContent = label;
+document.getElementById('ctaTitle').textContent = title;
+document.getElementById('ctaDesc').textContent = desc;
+document.getElementById('ctaBtn').textContent = btnText;
+document.getElementById('ctaBtn').href = SP_CONFIG.fullUrl;
+
+// 親フレームにサイズを通知
+function sendHeight() {
+  const h = document.documentElement.scrollHeight;
+  window.parent.postMessage({ type: 'cta-resize', height: h }, '*');
+}
+new ResizeObserver(() => sendHeight()).observe(document.body);
+sendHeight();
+</script>
+
+</body>
+</html>
