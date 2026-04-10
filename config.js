@@ -10,7 +10,7 @@ const SP_CONFIG = {
   couponCode: "SNOWPROGUIDE202604",
   
   // 問題数（266 → 300 に変わったらここを変更）
-  questionCount: 266,
+  questionCount: 300,
   
   // COF-C03対応状況（表示用テキスト）
   // 例: "COF-C02/C03両対応" → "COF-C03完全対応"
