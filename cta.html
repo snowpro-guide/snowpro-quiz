@@ -5,22 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   font-family: 'Noto Sans JP', sans-serif;
   background: transparent;
   -webkit-font-smoothing: antialiased;
 }
-
 .sp-cta {
   background: linear-gradient(135deg, #f0f9ff 0%, #e6f5fc 100%);
   border: 2px solid #b3e4f7;
   border-radius: 8px;
   padding: 24px 28px;
 }
-
 .sp-cta-label {
   font-size: 12px;
   font-weight: 700;
@@ -29,7 +25,6 @@ body {
   letter-spacing: 1px;
   margin-bottom: 6px;
 }
-
 .sp-cta h3 {
   font-size: 17px;
   font-weight: 700;
@@ -37,48 +32,76 @@ body {
   margin: 0 0 8px 0;
   line-height: 1.5;
 }
-
 .sp-cta p {
   font-size: 14px;
   color: #475569;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   line-height: 1.7;
 }
-
+/* 差別化ポイント（3点） */
+.sp-cta-benefits {
+  list-style: none;
+  margin: 0 0 18px 0;
+  padding: 0;
+}
+.sp-cta-benefits li {
+  font-size: 13px;
+  color: #0f172a;
+  padding: 4px 0 4px 22px;
+  position: relative;
+  line-height: 1.6;
+}
+.sp-cta-benefits li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  color: #00A1D9;
+  font-weight: 700;
+  font-size: 14px;
+}
+/* ボタン — 視認性UP（強めの影 + 微アニメーション） */
 .sp-cta-btn {
   display: inline-block;
   background: #00A1D9;
   color: #fff;
   font-size: 15px;
   font-weight: 700;
-  padding: 12px 28px;
+  padding: 14px 32px;
   border-radius: 6px;
   text-decoration: none;
-  transition: background 0.2s, transform 0.15s;
-  box-shadow: 0 2px 8px rgba(0,161,217,0.3);
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(0,161,217,0.35);
   border: none;
 }
-
 .sp-cta-btn:hover {
   background: #0088b8;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,161,217,0.45);
   color: #fff;
   text-decoration: none;
 }
-
+/* 控えめな補足テキスト（ボタン下） */
+.sp-cta-note {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 10px;
+}
 @media (max-width: 480px) {
   .sp-cta { padding: 20px; }
   .sp-cta h3 { font-size: 16px; }
+  .sp-cta-btn { padding: 13px 24px; font-size: 14px; width: 100%; text-align: center; }
 }
 </style>
 </head>
 <body>
-
 <div class="sp-cta" id="ctaBox">
   <div class="sp-cta-label" id="ctaLabel"></div>
   <h3 id="ctaTitle"></h3>
   <p id="ctaDesc"></p>
+  <ul class="sp-cta-benefits" id="ctaBenefits"></ul>
   <a class="sp-cta-btn" id="ctaBtn" target="_blank" rel="noopener"></a>
+  <div class="sp-cta-note">Udemyの無料プレビューで数問お試しいただけます</div>
 </div>
 
 <script src="config.js"></script>
@@ -87,24 +110,32 @@ body {
 const params = new URLSearchParams(window.location.search);
 
 // パラメータ一覧:
-//   label  — 左上のラベル（例: "日本語の模擬試験"）
-//   title  — h3のタイトル（省略時: config.jsのmainTitleを使用）
-//   desc   — 説明文（省略時: config.jsのstatusLineを使用）
-//   btn    — ボタンテキスト（省略時: config.jsのbtnTextDefaultを使用）
-//   type   — "default" | "detail" | "start"（btnより優先度低い）
+//   type   — "default" | "afterQuiz" | "struggling" | "intro" | "detail" | "start"
+//   label  — ラベル（省略時: presetsから）
+//   title  — h3タイトル（省略時: config.jsのmainTitle）
+//   desc   — 説明文（省略時: presetsから、なければstatusLine）
+//   btn    — ボタンテキスト（省略時: typeに応じて自動選択）
+//   hideBenefits — "1"を指定すると差別化ポイント非表示（コンパクト版）
 
-const label = params.get('label') || '日本語の模擬試験';
-const title = params.get('title') || SP_CONFIG.mainTitle;
-const desc = params.get('desc') || SP_CONFIG.statusLine;
 const type = params.get('type') || 'default';
+const preset = SP_CONFIG.presets[type] || SP_CONFIG.presets.default;
 
+const label = params.get('label') || preset.label;
+const title = params.get('title') || SP_CONFIG.mainTitle;
+const desc  = params.get('desc')  || preset.desc || SP_CONFIG.statusLine;
+
+// ボタンテキストの決定ロジック
 let btnText;
 if (params.get('btn')) {
   btnText = params.get('btn');
 } else {
-  btnText = type === 'detail' ? SP_CONFIG.btnTextDetail
-          : type === 'start'  ? SP_CONFIG.btnTextStart
-          : SP_CONFIG.btnTextDefault;
+  switch (type) {
+    case 'detail':     btnText = SP_CONFIG.btnTextDetail; break;
+    case 'start':      btnText = SP_CONFIG.btnTextStart; break;
+    case 'afterQuiz':  btnText = SP_CONFIG.btnTextAfterQuiz; break;
+    case 'struggling': btnText = SP_CONFIG.btnTextStruggling; break;
+    default:           btnText = SP_CONFIG.btnTextDefault;
+  }
 }
 
 document.getElementById('ctaLabel').textContent = label;
@@ -112,6 +143,16 @@ document.getElementById('ctaTitle').textContent = title;
 document.getElementById('ctaDesc').textContent = desc;
 document.getElementById('ctaBtn').textContent = btnText;
 document.getElementById('ctaBtn').href = SP_CONFIG.fullUrl;
+
+// 差別化ポイントの描画（hideBenefits=1で非表示）
+const benefitsEl = document.getElementById('ctaBenefits');
+if (params.get('hideBenefits') === '1') {
+  benefitsEl.style.display = 'none';
+} else {
+  benefitsEl.innerHTML = SP_CONFIG.benefits
+    .map(b => `<li>${b}</li>`)
+    .join('');
+}
 
 // 親フレームにサイズを通知
 function sendHeight() {
@@ -121,6 +162,5 @@ function sendHeight() {
 new ResizeObserver(() => sendHeight()).observe(document.body);
 sendHeight();
 </script>
-
 </body>
 </html>
