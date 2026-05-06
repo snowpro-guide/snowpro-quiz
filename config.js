@@ -7,7 +7,7 @@
 const SP_CONFIG = {
   // Udemyコース情報
   courseUrl: "https://www.udemy.com/course/200snowpro-core/",
-  couponCode: "SNOWPROGUIDE202604",
+  couponCode: "SNOWPROGUIDE202605",
 
   // 問題数（266 → 300 に変わったらここを変更）
   questionCount: 300,
